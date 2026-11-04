@@ -117,7 +117,7 @@ function updateBulkAndRelative(){
  }
 }
 $("sample-shape").addEventListener("change",renderDimensionFields);
-$("dimension-unit").addEventListener("change",()=>{ $("dimension-fields").querySelectorAll("label").forEach(label=>{label.textContent=label.textContent.replace(/ \((mm|cm)\)$/," ("+selectedUnit()+")");});if($("sample-shape").value==="irregular")$("bulk-volume").previousElementSibling.textContent="Measured sample volume ("+(selectedUnit()==="mm"?"mm³":"cm³")+")";updateGeometricVolume();});
+let lastDimensionUnit=selectedUnit();$("dimension-unit").addEventListener("change",()=>{const next=selectedUnit(),factor=lastDimensionUnit==="mm"&&next==="cm"?0.1:lastDimensionUnit==="cm"&&next==="mm"?10:1;if($("sample-shape").value==="irregular"){const v=Number($("bulk-volume").value);if(v>0)$("bulk-volume").value=(v*Math.pow(factor,3)).toString();}else $("dimension-fields").querySelectorAll("input").forEach(input=>{const v=Number(input.value);if(v>0)input.value=(v*factor).toString();});lastDimensionUnit=next;$("dimension-fields").querySelectorAll("label").forEach(label=>{label.textContent=label.textContent.replace(/ \((mm|cm)\)$/," ("+next+")");});if($("sample-shape").value==="irregular")$("bulk-volume").previousElementSibling.textContent="Measured sample volume ("+(next==="mm"?"mm³":"cm³")+")";updateGeometricVolume();});
 $("mass").addEventListener("input",updateBulkAndRelative);
 $("bulk-volume").addEventListener("input",()=>{if($("sample-shape").value==="irregular")updateBulkAndRelative();});
 $("calc-bulk").onclick=()=>{updateGeometricVolume();updateBulkAndRelative();};
