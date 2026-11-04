@@ -97,13 +97,13 @@ function updateGeometricVolume(){
  }else if(shape==="sphere"){
   const d=get("dim-diameter")*scale;if(d>0)v=(4/3)*Math.PI*(d/2)**3;
  }else{
-  const raw=get("bulk-volume");if(raw>0)v=raw*(selectedUnit()==="mm"?0.001:1);
+  const raw=get("bulk-volume");if(raw>0)v=raw;
  }
- $("bulk-volume").value=Number.isFinite(v)&&v>0?v.toFixed(8):"";
+ if(shape!=="irregular")$("bulk-volume").value=Number.isFinite(v)&&v>0?v.toFixed(8):"";
  updateBulkAndRelative();
 }
 function updateBulkAndRelative(){
- const m=Number($("mass").value),V=Number($("bulk-volume").value);
+ const m=Number($("mass").value),rawVolume=Number($("bulk-volume").value),V=$("sample-shape").value==="irregular"?rawVolume*(selectedUnit()==="mm"?0.001:1):rawVolume;
  if(Number.isFinite(m)&&m>0&&Number.isFinite(V)&&V>0){
   const bulk=m/V;
   $("bulk-output").innerHTML='<div class="big-result">'+bulk.toFixed(6)+' <small>g cm⁻³</small></div><p>Sample volume: '+V.toFixed(6)+' cm³ · Mass: '+m.toFixed(5)+' g</p>';
