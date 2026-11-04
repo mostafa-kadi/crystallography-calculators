@@ -1,13 +1,24 @@
-# Crystallography & XRD Calculators
+# Ceramic Density Analysis
 
-Nine browser-based calculators: d-spacing (cubic and general triclinic), lattice parameter (cubic), Bragg's law, XRD peak position, general unit-cell volume, interplanar angle (cubic), reciprocal lattice parameter (cubic), and Scherrer crystallite size.
+An integrated, browser-based workflow for ceramic density analysis:
 
-## Scientific conventions
-- Reciprocal lengths use the crystallographic convention without 2π.
-- Scherrer calculator accepts observed and instrumental FWHM in degrees of 2θ and applies a Gaussian correction; output is nm.
-- Interplanar angle formula assumes a cubic lattice.
-- Unit-cell volume supports general α, β, γ cell angles.
+1. Enter indexed XRD reflections as h, k, l and d-spacing (Å).
+2. Fit lattice parameters for a selected crystal system by linear least squares in reciprocal-metric space.
+3. Calculate unit-cell volume and theoretical density from chemical formula and Z.
+4. Calculate bulk density from sample mass and measured volume.
+5. Calculate relative density automatically.
 
-Open `index.html` directly or deploy the repository root as a static site. No backend or external dependencies.
+## Supported crystal systems
 
-Version 2 adds general triclinic d-spacing and Gaussian instrumental broadening correction for Scherrer analysis. See VALIDATION.md for reference calculations and assumptions.
+Cubic, tetragonal, orthorhombic, hexagonal, rhombohedral (rhombohedral axes), monoclinic (unique b), and triclinic.
+
+## Scientific assumptions
+
+- Least-squares fitting minimizes residuals in 1/d². Enter correctly indexed, independent reflections and inspect the residual table.
+- The fit is a metric least-squares estimate, not a full-profile Rietveld refinement. It does not correct zero shift, specimen displacement, wavelength uncertainty, peak overlap or anisotropic strain.
+- Formula parser supports common element symbols, decimal occupancies and parentheses. Unsupported elements/formula syntax are rejected.
+- Theoretical density assumes a single phase, full occupancy, correct formula and correct Z.
+- Bulk density is mass divided by user-entered external volume. Relative density = 100 × bulk density / theoretical density.
+- A relative density above 100% is flagged for review; the app does not silently clip results.
+
+Open index.html directly or deploy the repository root as a static site. No backend or external dependencies.
