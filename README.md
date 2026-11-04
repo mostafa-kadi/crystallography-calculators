@@ -1,18 +1,11 @@
 # Crystallography & XRD Calculators
 
-A browser-based toolkit for crystal geometry and powder X-ray diffraction calculations.
+Eight browser-based calculators: d-spacing (cubic), lattice parameter (cubic), Bragg's law, XRD peak position, general unit-cell volume, interplanar angle (cubic), reciprocal lattice (cubic), and Scherrer crystallite size.
 
-## Current release
-**Available now:** cubic d-spacing from lattice parameter and Miller indices, using d = a / √(h² + k² + l²).
+## Scientific conventions
+- Reciprocal lengths use the crystallographic convention without 2π.
+- Scherrer FWHM must be instrument-corrected and entered in degrees of 2θ; output is nm.
+- Interplanar angle formula assumes a cubic lattice.
+- Unit-cell volume supports general α, β, γ cell angles.
 
-## Planned calculators
-Lattice parameters, Bragg's law, XRD peak position (2θ), unit-cell volume, interplanar angle, reciprocal lattice and Scherrer crystallite size.
-
-## Run locally
-Open `index.html` in a modern browser. No build step, backend or external JavaScript dependency is required.
-
-## Static hosting
-For Cloudflare Pages, use the repository root as the project root and leave the build command empty.
-
-## Scientific note
-Check units, crystallographic assumptions and experimental inputs before using results in reports or publications.
+Open `index.html` directly or deploy the repository root as a static site. No backend or external dependencies.
