@@ -1,6 +1,6 @@
 # Crystallography & XRD Calculators
 
-Eight browser-based calculators: d-spacing (cubic), lattice parameter (cubic), Bragg's law, XRD peak position, general unit-cell volume, interplanar angle (cubic), reciprocal lattice (cubic), and Scherrer crystallite size.
+Nine browser-based calculators: d-spacing (cubic), lattice parameter (cubic), Bragg's law, XRD peak position, general unit-cell volume, interplanar angle (cubic), reciprocal lattice (cubic), and Scherrer crystallite size.
 
 ## Scientific conventions
 - Reciprocal lengths use the crystallographic convention without 2π.
