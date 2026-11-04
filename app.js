@@ -71,7 +71,7 @@ function renderDimensionFields(){
  const shape=$("sample-shape").value,unit=selectedUnit(),box=$("dimension-fields");
  let fields="";
  if(shape==="pellet"||shape==="disc")fields=dimensionInput("dim-diameter","Diameter")+dimensionInput("dim-thickness","Thickness");
- else if(shape==="cylinder")fields=dimensionInput("dim-diameter","Diameter")+dimensionInput("dim-height","Height");
+ else if(shape==="cylinder")fields=dimensionInput("dim-diameter","Diameter")+dimensionInput("dim-height","Thickness");
  else if(shape==="rectangular")fields=dimensionInput("dim-length","Length")+dimensionInput("dim-width","Width")+dimensionInput("dim-height","Height");
  else if(shape==="cube")fields=dimensionInput("dim-side","Side length");
  else if(shape==="sphere")fields=dimensionInput("dim-diameter","Diameter");
