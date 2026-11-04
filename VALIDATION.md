@@ -11,7 +11,8 @@
 | Unit-cell volume | a = b = c = 4 Å; α = β = γ = 90° | 64 Å³ |
 | Interplanar angle (cubic) | (100) and (110) | 45° |
 | Reciprocal parameter (cubic) | a = 4 Å | a* = 0.25 Å⁻¹ |
-| Scherrer size | K = 0.9; λ = 1.5406 Å; β = 0.2°; θ = 20° | 42.270679 nm |
+| Scherrer size | K = 0.9; λ = 1.5406 Å; βobs = 0.25°; βinst = 0.15°; θ = 20° | 42.270679 nm |
+| General triclinic d-spacing | a = b = 4 Å; c = 5 Å; α = 90°; β = 100°; γ = 90°; (110) | 2.806695 Å |
 
 ## Scope and assumptions
 
