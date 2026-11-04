@@ -63,7 +63,62 @@ $("fit").onclick=()=>{cell=null;rhoTheory=null;$("theory-output").textContent="F
 function updateDensity(){if(!cell){rhoTheory=null;$("theory-output").textContent="Fit lattice parameters first.";$("relative-output").textContent="Requires theoretical density and sample mass/volume.";return;}try{let M=molarMass($("formula").value),Z=Number($("z").value);if(!Number.isFinite(Z)||Z<=0)throw Error("Z must be a finite positive number.");rhoTheory=Z*M/(6.02214076e23*cell.V*1e-24);if(!Number.isFinite(rhoTheory)||rhoTheory<=0)throw Error("Theoretical density is not finite; check formula, Z and cell volume.");$("theory-output").innerHTML='<div class="big-result">'+rhoTheory.toFixed(6)+' <small>g cm⁻³</small></div><p>Molar mass: '+M.toFixed(5)+' g mol⁻¹ · Z = '+Z+' · V = '+cell.V.toFixed(5)+' Å³</p>';updateBulkAndRelative();}catch(e){rhoTheory=null;$("theory-output").textContent=e.message;$("relative-output").textContent="Requires a valid theoretical density and sample mass/volume.";}}
 $("formula").addEventListener("input",updateDensity);$("z").addEventListener("input",updateDensity);
 $("calc-theory").onclick=updateDensity;
-function updateBulkAndRelative(){let m=Number($("mass").value),V=Number($("bulk-volume").value);if(Number.isFinite(m)&&Number.isFinite(V)&&m>0&&V>0){let bulk=m/V;$("bulk-output").innerHTML='<div class="big-result">'+bulk.toFixed(6)+' <small>g cm⁻³</small></div>';if(Number.isFinite(rhoTheory)&&rhoTheory>0){let rel=100*bulk/rhoTheory;$("relative-output").innerHTML='<div class="metrics"><div><small>Bulk density</small><b>'+bulk.toFixed(5)+' g cm⁻³</b></div><div><small>Relative density</small><b>'+rel.toFixed(3)+'%</b></div><div><small>Estimated porosity</small><b>'+(100-rel).toFixed(3)+'%</b></div></div>'+(rel>100?'<p class="warn">Relative density exceeds 100%. Check the phase composition, Z, XRD fit, mass and volume.</p>':'');}else{$("relative-output").textContent="Requires a valid theoretical density.";}}else{$("bulk-output").textContent="Enter positive mass (g) and volume (cm³).";$("relative-output").textContent="Requires valid sample mass/volume and theoretical density.";}}
-$("calc-bulk").onclick=updateBulkAndRelative;
-$("mass").addEventListener("input",updateBulkAndRelative);$("bulk-volume").addEventListener("input",updateBulkAndRelative);
-renderRows();
+
+function selectedUnit(){return $("dimension-unit").value;}
+function unitToCm(){return selectedUnit()==="mm"?0.1:1;}
+function dimensionInput(id,label){return '<div class="field"><label for="'+id+'">'+label+' ('+selectedUnit()+')</label><input id="'+id+'" type="number" step="any" min="0" placeholder="Enter '+label.toLowerCase()+'"></div>';}
+function renderDimensionFields(){
+ const shape=$("sample-shape").value,unit=selectedUnit(),box=$("dimension-fields");
+ let fields="";
+ if(shape==="pellet"||shape==="disc")fields=dimensionInput("dim-diameter","Diameter")+dimensionInput("dim-thickness","Thickness");
+ else if(shape==="cylinder")fields=dimensionInput("dim-diameter","Diameter")+dimensionInput("dim-height","Height");
+ else if(shape==="rectangular")fields=dimensionInput("dim-length","Length")+dimensionInput("dim-width","Width")+dimensionInput("dim-height","Height");
+ else if(shape==="cube")fields=dimensionInput("dim-side","Side length");
+ else if(shape==="sphere")fields=dimensionInput("dim-diameter","Diameter");
+ else fields='<p class="hint">Enter the volume measured independently (for example, by liquid displacement). The selected unit applies to all dimensions and to this volume input.</p>';
+ box.innerHTML=fields;
+ const volume=$("bulk-volume");
+ if(shape==="irregular"){volume.readOnly=false;volume.placeholder="Enter measured volume";volume.value="";volume.previousElementSibling.textContent="Measured sample volume ("+(unit==="mm"?"mm³":"cm³")+")";}
+ else{volume.readOnly=true;volume.placeholder="Calculated from the selected shape";volume.value="";volume.previousElementSibling.textContent="Calculated sample volume (cm³)";}
+ box.querySelectorAll("input").forEach(input=>input.addEventListener("input",updateGeometricVolume));
+ updateGeometricVolume();
+}
+function updateGeometricVolume(){
+ const shape=$("sample-shape").value,scale=unitToCm(),get=id=>{const el=$(id);return el?Number(el.value):NaN;};
+ let v=NaN;
+ if(shape==="pellet"||shape==="disc"||shape==="cylinder"){
+  const d=get("dim-diameter")*scale,h=get(shape==="cylinder"?"dim-height":"dim-thickness")*scale;
+  if(d>0&&h>0)v=Math.PI*(d/2)**2*h;
+ }else if(shape==="rectangular"){
+  const l=get("dim-length")*scale,w=get("dim-width")*scale,h=get("dim-height")*scale;
+  if(l>0&&w>0&&h>0)v=l*w*h;
+ }else if(shape==="cube"){
+  const a=get("dim-side")*scale;if(a>0)v=a**3;
+ }else if(shape==="sphere"){
+  const d=get("dim-diameter")*scale;if(d>0)v=(4/3)*Math.PI*(d/2)**3;
+ }else{
+  const raw=get("bulk-volume");if(raw>0)v=raw*(selectedUnit()==="mm"?0.001:1);
+ }
+ $("bulk-volume").value=Number.isFinite(v)&&v>0?v.toFixed(8):"";
+ updateBulkAndRelative();
+}
+function updateBulkAndRelative(){
+ const m=Number($("mass").value),V=Number($("bulk-volume").value);
+ if(Number.isFinite(m)&&m>0&&Number.isFinite(V)&&V>0){
+  const bulk=m/V;
+  $("bulk-output").innerHTML='<div class="big-result">'+bulk.toFixed(6)+' <small>g cm⁻³</small></div><p>Sample volume: '+V.toFixed(6)+' cm³ · Mass: '+m.toFixed(5)+' g</p>';
+  if(Number.isFinite(rhoTheory)&&rhoTheory>0){
+   const rel=100*bulk/rhoTheory;
+   $("relative-output").innerHTML='<div class="metrics"><div><small>Bulk density</small><b>'+bulk.toFixed(5)+' g cm⁻³</b></div><div><small>Relative density</small><b>'+rel.toFixed(3)+'%</b></div><div><small>Estimated porosity</small><b>'+(100-rel).toFixed(3)+'%</b></div></div>'+(rel>100?'<p class="warn">Relative density exceeds 100%. Check the phase composition, Z, XRD fit, mass and sample dimensions.</p>':'');
+  }else $("relative-output").textContent="Requires a valid theoretical density.";
+ }else{
+  $("bulk-output").textContent="Enter a positive sample mass and valid sample dimensions or measured volume.";
+  $("relative-output").textContent="Requires valid sample mass/volume and theoretical density.";
+ }
+}
+$("sample-shape").addEventListener("change",renderDimensionFields);
+$("dimension-unit").addEventListener("change",renderDimensionFields);
+$("mass").addEventListener("input",updateBulkAndRelative);
+$("bulk-volume").addEventListener("input",()=>{if($("sample-shape").value==="irregular")updateBulkAndRelative();});
+$("calc-bulk").onclick=()=>{updateGeometricVolume();updateBulkAndRelative();};
+renderDimensionFields();
