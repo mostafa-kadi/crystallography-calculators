@@ -6,7 +6,56 @@ function inv3(m){let d=m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0
 function fitCell(rows,system){const terms=rows.map(({h,k,l,d})=>{let y=1/(d*d),x;switch(system){case"cubic":x=[h*h+k*k+l*l];break;case"tetragonal":x=[h*h+k*k,l*l];break;case"orthorhombic":x=[h*h,k*k,l*l];break;case"hexagonal":x=[4*(h*h+h*k+k*k)/3,l*l];break;case"rhombohedral":x=[h*h+k*k+l*l,2*(h*k+h*l+k*l)];break;case"monoclinic":x=[h*h,k*k,l*l,2*h*l];break;default:x=[h*h,k*k,l*l,2*h*k,2*h*l,2*k*l];}return{x,y};});let n=terms[0].x.length;if(rows.length<n)throw Error("This crystal system needs at least "+n+" independent reflections; enter more hkl/d rows.");let A=Array.from({length:n},()=>Array(n).fill(0)),b=Array(n).fill(0);for(const t of terms)for(let i=0;i<n;i++){b[i]+=t.x[i]*t.y;for(let j=0;j<n;j++)A[i][j]+=t.x[i]*t.x[j];}let p=solve(A,b),G;if(system==="cubic")G=[[p[0],0,0],[0,p[0],0],[0,0,p[0]]];else if(system==="tetragonal")G=[[p[0],0,0],[0,p[0],0],[0,0,p[1]]];else if(system==="orthorhombic")G=[[p[0],0,0],[0,p[1],0],[0,0,p[2]]];else if(system==="hexagonal")G=[[4*p[0]/3,2*p[0]/3,0],[2*p[0]/3,4*p[0]/3,0],[0,0,p[1]]];else if(system==="rhombohedral")G=[[p[0],p[1],p[1]],[p[1],p[0],p[1]],[p[1],p[1],p[0]]];else if(system==="monoclinic")G=[[p[0],0,p[3]],[0,p[1],0],[p[3],0,p[2]]];else G=[[p[0],p[3],p[4]],[p[3],p[1],p[5]],[p[4],p[5],p[2]]];let D=inv3(G),a=Math.sqrt(D[0][0]),b0=Math.sqrt(D[1][1]),c=Math.sqrt(D[2][2]),deg=x=>Math.acos(Math.max(-1,Math.min(1,x)))*180/Math.PI,alpha=deg(D[1][2]/(b0*c)),beta=deg(D[0][2]/(a*c)),gamma=deg(D[0][1]/(a*b0)),V=Math.sqrt(D[0][0]*(D[1][1]*D[2][2]-D[1][2]*D[2][1])-D[0][1]*(D[1][0]*D[2][2]-D[1][2]*D[2][0])+D[0][2]*(D[1][0]*D[2][1]-D[1][1]*D[2][0]));if(![a,b0,c,V].every(Number.isFinite)||V<=0)throw Error("The fitted cell is physically invalid.");let residuals=terms.map(t=>{let calc=t.x.reduce((s,x,i)=>s+x*p[i],0),dcalc=1/Math.sqrt(calc);return {obs:1/Math.sqrt(t.y),calc:dcalc,res:dcalc-1/Math.sqrt(t.y)};});let rms=Math.sqrt(residuals.reduce((s,r)=>s+r.res*r.res,0)/rows.length);return {a,b:b0,c,alpha,beta,gamma,V,rms,residuals};}
 let rows=[{h:1,k:0,l:0,d:4.012},{h:1,k:1,l:0,d:2.83691241},{h:1,k:1,l:1,d:2.31632928},{h:2,k:0,l:0,d:2.006}];let cell=null,rhoTheory=null;
 function renderRows(){ $("rows").innerHTML=rows.map((r,i)=>'<div class="hkl-row"><input aria-label="h" data-i="'+i+'" data-k="h" type="number" step="1" value="'+r.h+'"><input aria-label="k" data-i="'+i+'" data-k="k" type="number" step="1" value="'+r.k+'"><input aria-label="l" data-i="'+i+'" data-k="l" type="number" step="1" value="'+r.l+'"><input aria-label="d spacing in angstrom" data-i="'+i+'" data-k="d" type="number" step="any" value="'+r.d+'"><button class="remove" data-remove="'+i+'" aria-label="Remove row">×</button></div>').join("");}
-$("rows").addEventListener("paste",e=>{const target=e.target;if(!target.matches("input[data-i][data-k]"))return;const raw=e.clipboardData?.getData("text");if(!raw||(!raw.includes("\t")&&!raw.includes("\n")))return;e.preventDefault();let lines=raw.replace(/\r/g,"").split("\n").filter(x=>x.trim()!=="").map(x=>x.split("\t"));let startRow=Number(target.dataset.i),keys=["h","k","l","d"],startCol=keys.indexOf(target.dataset.k);if(startCol<0)return;const numeric=v=>{let n=Number(String(v).trim());return String(v).trim()!==""&&Number.isFinite(n)};if(lines.length&&lines[0].some(v=>/[a-zA-Z]/.test(v))){const header=lines[0].map(v=>v.trim().toLowerCase());if(header.some(v=>["h","k","l","d","d-spacing","d spacing","d(å)","d (å)"].includes(v)))lines.shift();}let accepted=0;for(let r=0;r<lines.length;r++){let vals=lines[r];if(startCol+vals.length>4)vals=vals.slice(0,4-startCol);let idx=startRow+r;while(rows.length<=idx)rows.push({h:0,k:0,l:0,d:1});for(let c=0;c<vals.length;c++){if(numeric(vals[c]))rows[idx][keys[startCol+c]]=Number(vals[c].trim());}accepted++;}renderRows();document.querySelector(".paste-status")?.remove();const note=document.createElement("span");note.className="paste-status";note.textContent=accepted+" Excel row(s) pasted. Review values, then fit.";note.setAttribute("role","status");$("rows").after(note);});
+
+function normalizeHeader(v){return String(v??"").trim().toLowerCase().replace(/[ _-]+/g,"").replace(/[()[\]]/g,"");}
+function headerColumn(v){const h=normalizeHeader(v);if(["h","hindex","millerh"].includes(h))return"h";if(["k","kindex","millerk"].includes(h))return"k";if(["l","lindex","millerl"].includes(h))return"l";if(["d","dspacing","dspace","dangstrom","då","d(å)","dvalue","interplanarspacing","spacing"].includes(h))return"d";return null;}
+function parseReflectionMatrix(matrix){
+  const clean=matrix.filter(row=>row&&row.some(v=>String(v??"").trim()!==""));
+  if(!clean.length)throw Error("No reflection data were found in the selected sheet.");
+  let headerRow=-1,map={};
+  for(let i=0;i<Math.min(clean.length,10);i++){const candidate={};clean[i].forEach((v,j)=>{const key=headerColumn(v);if(key&&candidate[key]===undefined)candidate[key]=j;});if(["h","k","l","d"].every(k=>candidate[k]!==undefined)){headerRow=i;map=candidate;break;}}
+  if(headerRow<0){map={h:0,k:1,l:2,d:3};headerRow=-1;}
+  const data=clean.slice(headerRow+1);
+  const parsed=[];
+  for(let ri=0;ri<data.length;ri++){
+    const row=data[ri],vals={};
+    for(const key of ["h","k","l","d"]){const raw=row[map[key]];const value=typeof raw==="number"?raw:Number(String(raw??"").trim().replace(/,/g,""));if(String(raw??"").trim()===""||!Number.isFinite(value)){if(row.every(v=>String(v??"").trim()===""))continue;throw Error("Invalid or missing "+key+" value in imported data row "+(ri+headerRow+2)+".");}vals[key]=value;}
+    if(Object.keys(vals).length)parsed.push(vals);
+  }
+  if(!parsed.length)throw Error("No valid h, k, l, d-spacing rows were found.");
+  if(parsed.some(r=>![r.h,r.k,r.l].every(Number.isInteger)||r.h===0&&r.k===0&&r.l===0||r.d<=0))throw Error("Imported data must contain integer hkl (not all zero) and positive d-spacing values in Å.");
+  return parsed;
+}
+function applyImportedRows(parsed,mode="replace"){
+  rows=mode==="append"?rows.concat(parsed):parsed;
+  renderRows();
+  const status=$("import-status");if(status)status.textContent=parsed.length+" reflection(s) loaded. Review the rows, then fit lattice parameters.";
+}
+$("rows").addEventListener("paste",e=>{
+  const target=e.target;if(!target.matches("input[data-i][data-k]"))return;
+  const raw=e.clipboardData?.getData("text");if(!raw||(!raw.includes("\t")&&!raw.includes("\n")))return;
+  e.preventDefault();
+  try{const matrix=raw.replace(/\r/g,"").split("\n").filter(x=>x.trim()!=="").map(x=>x.split("\t"));const parsed=parseReflectionMatrix(matrix);applyImportedRows(parsed,"replace");}
+  catch(err){const status=$("import-status");if(status)status.textContent="Paste error: "+err.message;}
+});
+$("excel-file").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const status=$("import-status");status.textContent="Reading "+file.name+"…";
+  try{
+    const ext=file.name.split(".").pop().toLowerCase();let matrix;
+    if(ext==="csv"||ext==="tsv"){
+      const text=await file.text();matrix=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(x=>x.trim()!=="").map(line=>{const delimiter=ext==="tsv"||line.includes("\t")?"\t":",";return line.split(delimiter).map(v=>v.trim().replace(/^"(.*)"$/,"$1"));});
+    }else{
+      if(!window.XLSX)throw Error("Excel reader did not load. Check your internet connection and reload the page.");
+      const buffer=await file.arrayBuffer(),workbook=XLSX.read(buffer,{type:"array",cellDates:false});
+      const sheetName=workbook.SheetNames[0];if(!sheetName)throw Error("The workbook contains no worksheets.");
+      matrix=XLSX.utils.sheet_to_json(workbook.Sheets[sheetName],{header:1,raw:true,defval:""});
+      status.textContent="Reading worksheet: "+sheetName+"…";
+    }
+    const parsed=parseReflectionMatrix(matrix);applyImportedRows(parsed,"replace");
+  }catch(err){status.textContent="Import error: "+err.message;}
+  e.target.value="";
+});
 $("rows").addEventListener("input",e=>{let i=e.target.dataset.i,k=e.target.dataset.k;if(i!==undefined)rows[+i][k]=Number(e.target.value);});
 $("rows").addEventListener("click",e=>{if(e.target.dataset.remove!==undefined){rows.splice(+e.target.dataset.remove,1);renderRows();}});
 $("add-row").onclick=()=>{rows.push({h:0,k:0,l:1,d:1});renderRows();};
