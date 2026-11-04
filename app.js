@@ -117,7 +117,7 @@ function updateBulkAndRelative(){
  }
 }
 $("sample-shape").addEventListener("change",renderDimensionFields);
-$("dimension-unit").addEventListener("change",renderDimensionFields);
+$("dimension-unit").addEventListener("change",()=>{ $("dimension-fields").querySelectorAll("label").forEach(label=>{label.textContent=label.textContent.replace(/ \((mm|cm)\)$/," ("+selectedUnit()+")");});if($("sample-shape").value==="irregular")$("bulk-volume").previousElementSibling.textContent="Measured sample volume ("+(selectedUnit()==="mm"?"mm³":"cm³")+")";updateGeometricVolume();});
 $("mass").addEventListener("input",updateBulkAndRelative);
 $("bulk-volume").addEventListener("input",()=>{if($("sample-shape").value==="irregular")updateBulkAndRelative();});
 $("calc-bulk").onclick=()=>{updateGeometricVolume();updateBulkAndRelative();};
