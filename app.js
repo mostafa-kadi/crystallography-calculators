@@ -8,7 +8,7 @@ let rows=[{h:1,k:0,l:0,d:4.012},{h:1,k:1,l:0,d:2.83691241},{h:1,k:1,l:1,d:2.3163
 function renderRows(){ $("rows").innerHTML=rows.map((r,i)=>'<div class="hkl-row"><input aria-label="h" data-i="'+i+'" data-k="h" type="number" step="1" value="'+r.h+'"><input aria-label="k" data-i="'+i+'" data-k="k" type="number" step="1" value="'+r.k+'"><input aria-label="l" data-i="'+i+'" data-k="l" type="number" step="1" value="'+r.l+'"><input aria-label="d spacing in angstrom" data-i="'+i+'" data-k="d" type="number" step="any" value="'+r.d+'"><button class="remove" data-remove="'+i+'" aria-label="Remove row">×</button></div>').join("");}
 
 function normalizeHeader(v){return String(v??"").trim().toLowerCase().replace(/[ _-]+/g,"").replace(/[()[\]]/g,"");}
-function headerColumn(v){const h=normalizeHeader(v);if(["h","hindex","millerh"].includes(h))return"h";if(["k","kindex","millerk"].includes(h))return"k";if(["l","lindex","millerl"].includes(h))return"l";if(["d","dspacing","dspace","dangstrom","då","d(å)","dvalue","interplanarspacing","spacing"].includes(h))return"d";return null;}
+function headerColumn(v){const h=normalizeHeader(v);if(["h","hindex","millerh"].includes(h))return"h";if(["k","kindex","millerk"].includes(h))return"k";if(["l","lindex","millerl"].includes(h))return"l";if(["d","dspacing","dspace","dspacingå","dspacingangstrom","dspacinga","dangstrom","då","da","dvalue","dobs","dobserved","interplanarspacing","spacing"].includes(h))return"d";return null;}
 function parseReflectionMatrix(matrix){
   const clean=matrix.filter(row=>row&&row.some(v=>String(v??"").trim()!==""));
   if(!clean.length)throw Error("No reflection data were found in the selected sheet.");
