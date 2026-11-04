@@ -9,3 +9,5 @@ Eight browser-based calculators: d-spacing (cubic), lattice parameter (cubic), B
 - Unit-cell volume supports general α, β, γ cell angles.
 
 Open `index.html` directly or deploy the repository root as a static site. No backend or external dependencies.
+
+Version 2 development branch: general triclinic d-spacing and profile-aware instrumental broadening correction are under development. These advanced calculations will be documented with explicit assumptions and test cases before merging.
