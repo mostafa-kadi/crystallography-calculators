@@ -25,6 +25,19 @@ Maximum calculated-versus-generated d-spacing differences were below 4×10⁻¹�
 - Density equation check: for BaTi0.96Nb0.04O3, Z = 1 and Vcell = 64.000 Å³, calculated theoretical density = 6.09710 g cm⁻³.
 - Bulk-density check: 1.000 g / 0.200 cm³ = 5.000 g cm⁻³.
 
+## Application logic smoke checks
+
+A lightweight DOM mock executed the actual `app.js` handlers (not a full browser engine):
+- Default XRD input produces a cubic cell result.
+- Entering mass = 1.000 g and volume = 0.200 cm³ updates bulk and relative density.
+- Replacing the formula with invalid syntax clears the previous relative-density result instead of leaving a stale value visible.
+- Restoring a valid formula recalculates the relative density.
+- Entering a non-positive mass clears the relative-density result and displays the input requirement.
+- All 14 element IDs referenced by JavaScript are present in `index.html`.
+- JavaScript parses successfully.
+
+All listed smoke checks passed. This does not replace real browser rendering, responsive-layout, or device testing.
+
 ## Scope of verification
 
 The regression checks above were run independently against the mathematical model and parser. They are not a browser/device end-to-end test, and they do not establish accuracy for experimental XRD data. Experimental use still requires correctly indexed reflections, appropriate crystal-system selection, adequate independent reflections, and comparison with a trusted crystallographic refinement/reference. The method is a least-squares fit to d-spacing data, not a Rietveld refinement.
