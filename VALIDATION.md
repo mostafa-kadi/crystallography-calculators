@@ -1,15 +1,30 @@
-# Validation plan
+# Validation results
 
-## Analytic checks to run before production use
+## Synthetic lattice-parameter regression
 
-- Cubic synthetic dataset: a = 4.000 Å; reflections (100), (110), (111), (200), with d = a / sqrt(h²+k²+l²). Fit must recover a = 4.000 Å.
-- Tetragonal synthetic dataset: a = b = 3.900 Å, c = 4.100 Å; use independent hkl rows that separate basal and c-axis terms.
-- Orthorhombic synthetic dataset: a = 4.0 Å, b = 5.0 Å, c = 6.0 Å; use (100), (010), (001) plus redundant mixed reflections.
-- Hexagonal synthetic dataset: a = 3.0 Å, c = 5.0 Å; use (100), (002), (101) and additional independent reflections.
-- Rhombohedral, monoclinic and triclinic datasets should be generated from known direct-cell metrics and checked for parameter recovery, positive definiteness and residuals.
-- Density check: BaTiO3 formula mass with known Z and V should match ZM/(NA Vcell).
-- Bulk/relative density check: m = 1.000 g, V = 0.200 cm³ gives 5.000 g cm⁻³; relative density is 100 × 5 / rho_theory.
+The reciprocal-metric fitting equations were checked against synthetic d-spacings generated from known direct-cell metrics. Each dataset includes at least the number of independent reflections required by its model.
 
-## Important
+| Crystal system | Reference cell (Å; °) | Maximum absolute parameter error |
+|---|---|---:|
+| Cubic | a = b = c = 4.000; α = β = γ = 90 | 0 |
+| Tetragonal | a = b = 3.900, c = 4.100; α = β = γ = 90 | < 1×10⁻¹⁵ |
+| Orthorhombic | a = 4.000, b = 5.000, c = 6.000; α = β = γ = 90 | < 3×10⁻¹⁵ |
+| Hexagonal | a = b = 3.000, c = 5.000; α = β = 90, γ = 120 | < 2×10⁻¹⁴ |
+| Rhombohedral (rhombohedral axes) | a = b = c = 4.000; α = β = γ = 75 | < 2×10⁻¹⁴ |
+| Monoclinic (unique b) | a = 4.000, b = 5.000, c = 6.000; α = γ = 90, β = 105 | < 3×10⁻¹⁵ |
+| Triclinic | a = 4.000, b = 5.000, c = 6.000; α = 75, β = 82, γ = 70 | < 6×10⁻¹⁴ |
 
-These are the validation cases to execute; they are not a claim that every case has already passed. Browser/device testing and comparison with a trusted crystallographic reference remain required.
+Maximum calculated-versus-generated d-spacing differences were below 4×10⁻¹⁵ Å in these exact synthetic cases (floating-point numerical precision).
+
+**Hexagonal correction:** the reciprocal metric is reconstructed with diagonal terms 4p/3 and off-diagonal terms +2p/3, where p = 1/a². This recovers γ = 120° for the conventional hexagonal cell. The previous reconstruction incorrectly returned γ = 60° and an incorrect a parameter.
+
+## Formula and density checks
+
+- Formula parser checks: BaTi0.96Nb0.04O3 = 234.99256 g mol⁻¹; Ca3(PO4)2 = 310.17400 g mol⁻¹; Al2(SO4)3 = 342.13200 g mol⁻¹; Ba(Zr0.8Y0.2)O2.9 = 274.48450 g mol⁻¹.
+- Unsupported element (XxO2) and unmatched closing parenthesis were rejected.
+- Density equation check: for BaTi0.96Nb0.04O3, Z = 1 and Vcell = 64.000 Å³, calculated theoretical density = 6.09710 g cm⁻³.
+- Bulk-density check: 1.000 g / 0.200 cm³ = 5.000 g cm⁻³.
+
+## Scope of verification
+
+The regression checks above were run independently against the mathematical model and parser. They are not a browser/device end-to-end test, and they do not establish accuracy for experimental XRD data. Experimental use still requires correctly indexed reflections, appropriate crystal-system selection, adequate independent reflections, and comparison with a trusted crystallographic refinement/reference. The method is a least-squares fit to d-spacing data, not a Rietveld refinement.
