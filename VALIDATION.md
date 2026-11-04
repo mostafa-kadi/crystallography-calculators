@@ -1,29 +1,43 @@
-# Scientific validation notes
+# Validation results
 
-## Independent numerical reference checks
+## Synthetic lattice-parameter regression
 
-| Calculator | Reference inputs | Expected result |
+The reciprocal-metric fitting equations were checked against synthetic d-spacings generated from known direct-cell metrics. Each dataset includes at least the number of independent reflections required by its model.
+
+| Crystal system | Reference cell (Å; °) | Maximum absolute parameter error |
 |---|---|---:|
-| d-Spacing | Cubic a = 4 Å; (110) | 2.828427 Å |
-| Lattice parameter | Cubic d = 2 Å; (110) | 2.828427 Å |
-| Bragg's law | d = 2 Å; λ = 1.5406 Å; n = 1 | θ = 22.653053° |
-| XRD peak position | d = 2 Å; λ = 1.5406 Å | 2θ = 45.306106° |
-| Unit-cell volume | a = b = c = 4 Å; α = β = γ = 90° | 64 Å³ |
-| Interplanar angle (cubic) | (100) and (110) | 45° |
-| Reciprocal parameter (cubic) | a = 4 Å | a* = 0.25 Å⁻¹ |
-| Scherrer size | K = 0.9; λ = 1.5406 Å; βobs = 0.25°; βinst = 0.15°; θ = 20° | 42.270679 nm |
-| General triclinic d-spacing | a = b = 4 Å; c = 5 Å; α = 90°; β = 100°; γ = 90°; (110) | 2.806695 Å |
+| Cubic | a = b = c = 4.000; α = β = γ = 90 | 0 |
+| Tetragonal | a = b = 3.900, c = 4.100; α = β = γ = 90 | < 1×10⁻¹⁵ |
+| Orthorhombic | a = 4.000, b = 5.000, c = 6.000; α = β = γ = 90 | < 3×10⁻¹⁵ |
+| Hexagonal | a = b = 3.000, c = 5.000; α = β = 90, γ = 120 | < 2×10⁻¹⁴ |
+| Rhombohedral (rhombohedral axes) | a = b = c = 4.000; α = β = γ = 75 | < 2×10⁻¹⁴ |
+| Monoclinic (unique b) | a = 4.000, b = 5.000, c = 6.000; α = γ = 90, β = 105 | < 3×10⁻¹⁵ |
+| Triclinic | a = 4.000, b = 5.000, c = 6.000; α = 75, β = 82, γ = 70 | < 6×10⁻¹⁴ |
 
-## Scope and assumptions
+Maximum calculated-versus-generated d-spacing differences were below 4×10⁻¹⁵ Å in these exact synthetic cases (floating-point numerical precision).
 
-- The original d-spacing and lattice-parameter tools, interplanar angle, and reciprocal parameter use cubic-lattice relations. The added general d-spacing tool uses the reciprocal metric tensor for triclinic cells.
-- The unit-cell volume tool supports general cell lengths and angles.
-- Reciprocal parameter uses the crystallographic convention without 2π. It is a cubic reciprocal-lattice parameter, not a full reciprocal-basis matrix.
-- Scherrer accepts observed and instrumental FWHM values in degrees of 2θ and applies the Gaussian approximation β = √(βobs² − βinst²). This correction is not appropriate for every peak-profile convolution; choose a profile-specific correction when required. The result is a coherent-domain size, not necessarily particle size.
-- Bragg order n must be a positive integer; Miller indices must be integers and not all zero.
+**Hexagonal correction:** the reciprocal metric is reconstructed with diagonal terms 4p/3 and off-diagonal terms +2p/3, where p = 1/a². This recovers γ = 120° for the conventional hexagonal cell. The previous reconstruction incorrectly returned γ = 60° and an incorrect a parameter.
 
-## Validation status
+## Formula and density checks
 
-The default examples above were independently recalculated and matched to the application's numerical outputs. Input rejection checks cover invalid lattice lengths, zero Miller indices, non-integer indices, non-integer Bragg order and invalid unit-cell angles.
+- Formula parser checks: BaTi0.96Nb0.04O3 = 234.99256 g mol⁻¹; Ca3(PO4)2 = 310.17400 g mol⁻¹; Al2(SO4)3 = 342.13200 g mol⁻¹; Ba(Zr0.8Y0.2)O2.9 = 274.48450 g mol⁻¹.
+- Unsupported element (XxO2) and unmatched closing parenthesis were rejected.
+- Density equation check: for BaTi0.96Nb0.04O3, Z = 1 and Vcell = 64.000 Å³, calculated theoretical density = 6.09710 g cm⁻³.
+- Bulk-density check: 1.000 g / 0.200 cm³ = 5.000 g cm⁻³.
 
-This is a numerical and formula-level check, not yet a browser/device compatibility test or a comparison against a certified diffraction reference dataset.
+## Application logic smoke checks
+
+A lightweight DOM mock executed the actual `app.js` handlers (not a full browser engine):
+- Default XRD input produces a cubic cell result.
+- Entering mass = 1.000 g and volume = 0.200 cm³ updates bulk and relative density.
+- Replacing the formula with invalid syntax clears the previous relative-density result instead of leaving a stale value visible.
+- Restoring a valid formula recalculates the relative density.
+- Entering a non-positive mass clears the relative-density result and displays the input requirement.
+- All 14 element IDs referenced by JavaScript are present in `index.html`.
+- JavaScript parses successfully.
+
+All listed smoke checks passed. This does not replace real browser rendering, responsive-layout, or device testing.
+
+## Scope of verification
+
+The regression checks above were run independently against the mathematical model and parser. They are not a browser/device end-to-end test, and they do not establish accuracy for experimental XRD data. Experimental use still requires correctly indexed reflections, appropriate crystal-system selection, adequate independent reflections, and comparison with a trusted crystallographic refinement/reference. The method is a least-squares fit to d-spacing data, not a Rietveld refinement.
